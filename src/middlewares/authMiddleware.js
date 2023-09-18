@@ -3,7 +3,7 @@ const dbModel = require('../models/dbModel');
 
 // TODO: Define the User
 exports.generateAccessToken = function (user) {
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30s' }); // TODO: 30s is only for testing
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5m' }); // TODO: 30s is only for testing
 }
 
 exports.generateRefreshToken = async function (req, res) {
@@ -14,8 +14,8 @@ exports.generateRefreshToken = async function (req, res) {
         const { rows } = await dbModel.getRefreshToken(token);
         if (rows.length > 0) {
             jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-                if (err) res.sendStatus(403);
-                const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30s' }); // TODO: repetivitve code
+                if (err) res.status(403).send(err);
+                const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5m' }); // TODO: repetivitve code
                 res.json({ accessToken: accessToken, email: user.email, id: user.id, role: user.role });
             });
         } else {
@@ -23,7 +23,7 @@ exports.generateRefreshToken = async function (req, res) {
         }
     } else { // access token received; send back the same token
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-            if (err) return res.sendStatus(403);
+            if (err) return res.status(403).send(err);
             res.json({ accessToken: token, email: user.email, id: user.id, role: user.role });
         });
     }
@@ -36,7 +36,8 @@ exports.authenticateToken = function (req, res, next) {
 
     // user is the object that we serialized into the token
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err) return res.status(403).send(err);
+        if (err) console.log(err);
         req.user = user;
         next();
     });
