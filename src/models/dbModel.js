@@ -79,6 +79,10 @@ function deleteRefreshToken(token) {
     return db.query('UPDATE uf.refresh_tokens SET active = $1 WHERE token = $2', [false, token]);
 }
 
+function deleteExposureData(userId, exposureType) {
+    return db.query('UPDATE uf.exposure_data SET active = $1 WHERE user_id = $2 AND type = $3 AND active = $4', [false, userId, exposureType, true]);
+}
+
 module.exports = {
     getAllTournaments,
     getAllPlayers,
@@ -96,4 +100,5 @@ module.exports = {
     insertRefreshToken,
     getRefreshToken,
     deleteRefreshToken,
+    deleteExposureData,
 };

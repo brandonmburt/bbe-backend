@@ -3,7 +3,7 @@ const dbModel = require('../models/dbModel');
 
 // TODO: Define the User
 exports.generateAccessToken = function (user) {
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5m' }); // TODO: 30s is only for testing
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' }); // TODO: 30s is only for testing
 }
 
 exports.generateRefreshToken = async function (req, res) {
@@ -15,7 +15,7 @@ exports.generateRefreshToken = async function (req, res) {
         if (rows.length > 0) {
             jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
                 if (err) res.status(403).send(err);
-                const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5m' }); // TODO: repetivitve code
+                const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' }); // TODO: repetivitve code
                 res.json({ accessToken: accessToken, email: user.email, id: user.id, role: user.role });
             });
         } else {

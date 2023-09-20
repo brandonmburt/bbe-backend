@@ -94,7 +94,7 @@ exports.getExposureData = async function (req, res) {
         } else {
             let exposureData = {};
             rows.forEach(row => {
-                const { draft_spots, drafted_teams, drafted_players, pos_picks_by_round, entries_running_totals, type } = row;
+                const { draft_spots, drafted_teams, drafted_players, pos_picks_by_round, entries_running_totals, type, created_timestamp } = row;
                 if (EXPOSURE_TYPES.includes(type)) {
                     exposureData[type] = {
                         draftSpots: draft_spots,
@@ -102,6 +102,7 @@ exports.getExposureData = async function (req, res) {
                         draftedPlayers: drafted_players,
                         posPicksByRound: pos_picks_by_round,
                         draftEntriesRunningTotals: entries_running_totals,
+                        uploadTime: created_timestamp,
                     }
                 }
             })
@@ -111,4 +112,20 @@ exports.getExposureData = async function (req, res) {
         res.status(500).send('Error: ', error);
     }
 
+}
+
+exports.deleteExposureData = async function (req, res) {
+    const userId = req.user.id;
+    const { exposureType } = req.body;
+
+    if (!userId || !exposureType) {
+        return res.status(400).send('Missing user id or exposure type');
+    }
+
+    try {
+        await dbModel.deleteExposureData(userId, exposureType);
+        res.status(200).send('Exposure data successfully deleted');
+    } catch (error) {
+        res.status(500).send('Error: ', error);
+    }
 }
