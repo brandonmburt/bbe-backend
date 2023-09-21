@@ -41,6 +41,8 @@ const generateDraftedTeamsJSON = (arr) => {
         const draftEntry = row.getVal('Draft Entry');
         if (!draftedTeamsMap.has(draftEntry)) {
             draftedTeamsMap.set(draftEntry, {
+                firstTimestamp: row.getVal('Picked At'),
+                lastTimestamp: row.getVal('Picked At'),
                 draftEntry: draftEntry,
                 tournamentId: row.getVal('Tournament'),
                 weeklyWinnerId: row.getVal('Weekly Winner'),
@@ -60,9 +62,27 @@ const generateDraftedTeamsJSON = (arr) => {
             draftedTeamsMap.get(draftEntry)[(position.toLowerCase() + 's')].push(
                 [row.getVal('Pick Number'), row.getVal('Appearance'), row.getVal('Picked At')]
             );
+            draftedTeamsMap.get(draftEntry).lastTimestamp = row.getVal('Picked At');
         }
     })
-    return JSON.stringify([...draftedTeamsMap.values()]);
+
+    const SLOW_DRAFT_MINUTES = 240; // Arbitrary value (4 hours) used to determine if a draft is slow
+
+    let res = [...draftedTeamsMap.values()].map(obj => {
+        const d1 = new Date(obj.firstTimestamp), d2 = new Date(obj.lastTimestamp);
+        const timeDifferenceMs = d1.getTime() - d2.getTime(); // Calculate the time difference in milliseconds
+        const minutesDifference = Math.floor(timeDifferenceMs / (1000 * 60)); // Convert milliseconds to minutes
+        const draftType = minutesDifference >= SLOW_DRAFT_MINUTES ? 'slow' : 'fast';
+        let returnObj = {
+            draftType,
+            ...obj
+        }
+        delete returnObj['firstTimestamp'];
+        delete returnObj['lastTimestamp'];
+        return returnObj;
+    });
+
+    return JSON.stringify(res);
 }
 
 

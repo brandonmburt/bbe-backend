@@ -89,35 +89,31 @@ exports.getExposureData = async function (req, res) {
 
     try {
         const { rows } = await dbModel.getExposureData(req.query.userId);
-        if (rows.length === 0) {
-            throw new Error('No exposure data found for that user');
-        } else {
-            let exposureData = {};
-            rows.forEach(row => {
-                const {
-                    draft_spots,
-                    drafted_teams,
-                    drafted_players,
-                    pos_picks_by_round,
-                    entries_running_totals,
-                    tournaments,
-                    type,
-                    created_timestamp
-                } = row;
-                if (EXPOSURE_TYPES.includes(type)) {
-                    exposureData[type] = {
-                        draftSpots: draft_spots,
-                        draftedTeams: drafted_teams,
-                        draftedPlayers: drafted_players,
-                        posPicksByRound: pos_picks_by_round,
-                        draftEntriesRunningTotals: entries_running_totals,
-                        uploadTime: created_timestamp,
-                        tournaments: tournaments,
-                    }
+        let exposureData = {};
+        rows.forEach(row => {
+            const {
+                draft_spots,
+                drafted_teams,
+                drafted_players,
+                pos_picks_by_round,
+                entries_running_totals,
+                tournaments,
+                type,
+                created_timestamp
+            } = row;
+            if (EXPOSURE_TYPES.includes(type)) {
+                exposureData[type] = {
+                    draftSpots: draft_spots,
+                    draftedTeams: drafted_teams,
+                    draftedPlayers: drafted_players,
+                    posPicksByRound: pos_picks_by_round,
+                    draftEntriesRunningTotals: entries_running_totals,
+                    uploadTime: created_timestamp,
+                    tournaments: tournaments,
                 }
-            })
-            res.status(200).json(exposureData);
-        }
+            }
+        })
+        res.status(200).json(exposureData);
     } catch (error) {
         res.status(500).send('Error: ', error);
     }

@@ -54,6 +54,7 @@ exports.uploadFile = async function (req, res) {
 
         res.status(200).send('Successfully processed file');
     } catch (error) {
+        console.log(error);
         res.status(500).send('Unable to parse exposure data', error);
     }
 
