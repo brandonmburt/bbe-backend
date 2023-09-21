@@ -94,7 +94,16 @@ exports.getExposureData = async function (req, res) {
         } else {
             let exposureData = {};
             rows.forEach(row => {
-                const { draft_spots, drafted_teams, drafted_players, pos_picks_by_round, entries_running_totals, type, created_timestamp } = row;
+                const {
+                    draft_spots,
+                    drafted_teams,
+                    drafted_players,
+                    pos_picks_by_round,
+                    entries_running_totals,
+                    tournaments,
+                    type,
+                    created_timestamp
+                } = row;
                 if (EXPOSURE_TYPES.includes(type)) {
                     exposureData[type] = {
                         draftSpots: draft_spots,
@@ -103,6 +112,7 @@ exports.getExposureData = async function (req, res) {
                         posPicksByRound: pos_picks_by_round,
                         draftEntriesRunningTotals: entries_running_totals,
                         uploadTime: created_timestamp,
+                        tournaments: tournaments,
                     }
                 }
             })

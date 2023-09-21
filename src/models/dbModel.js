@@ -1,10 +1,6 @@
 const db = require('../config/db');
 const { generatePlaceholderString, generateColumnsString } = require('../utils/query.utils');
-const { playerColumns, tournamentColumns, exposureDataColumns, adpDataColumns, userCreationColumns } = require('../constants/columns');
-
-function getAllTournaments() {
-    return db.query('SELECT * FROM uf.tournaments');
-}
+const { playerColumns, exposureDataColumns, adpDataColumns, userCreationColumns } = require('../constants/columns');
 
 function getAllPlayers() {
     return db.query('SELECT * FROM uf.players');
@@ -28,13 +24,6 @@ function insertPlayers(playersArr) {
     return db.query(playerQuery, playersArr.flat());
 }
 
-function insertTournaments(tournamentsArr) {
-    let columnsString = generateColumnsString(tournamentColumns);
-    let placeholderString = generatePlaceholderString(tournamentColumns.length, tournamentsArr.length);
-    const tournamentsQuery = `INSERT INTO uf.tournaments ${columnsString} VALUES ${placeholderString}`;
-    return db.query(tournamentsQuery, tournamentsArr.flat());
-}
-
 function invalidatePreviousExposureData(userId, exposureType) {
     const updateQuery = `UPDATE uf.exposure_data SET active = $1 WHERE user_id = $2 AND active = $3 AND type = $4;`;
     return db.query(updateQuery, [false, userId, true, exposureType]);
@@ -45,9 +34,9 @@ function invalidatePreviousAdpData(type) {
     return db.query(updateQuery, [false, true, type]);
 }
 
-function insertExposureData(userId, type, draftSpotJSON, draftedTeamsJSON, draftedPlayersJSON, posPicksByRoundJSON, totalDraftsByDateJSON) {
+function insertExposureData(userId, type, draftSpotJSON, draftedTeamsJSON, draftedPlayersJSON, posPicksByRoundJSON, totalDraftsByDateJSON, tournamentsJSON) {
     const query = `INSERT INTO uf.exposure_data ${generateColumnsString(exposureDataColumns)} VALUES ${generatePlaceholderString(exposureDataColumns.length, 1)}`;
-    return db.query(query, [userId, type, draftSpotJSON, draftedTeamsJSON, draftedPlayersJSON, posPicksByRoundJSON, totalDraftsByDateJSON]);
+    return db.query(query, [userId, type, draftSpotJSON, draftedTeamsJSON, draftedPlayersJSON, posPicksByRoundJSON, totalDraftsByDateJSON, tournamentsJSON]);
 }
 
 function insertAdpData(arr, type) {
@@ -84,12 +73,10 @@ function deleteExposureData(userId, exposureType) {
 }
 
 module.exports = {
-    getAllTournaments,
     getAllPlayers,
     insertNewUser,
     getUserByEmail,
     insertPlayers,
-    insertTournaments,
     invalidatePreviousExposureData,
     invalidatePreviousAdpData,
     insertExposureData,

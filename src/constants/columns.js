@@ -7,15 +7,6 @@ const playerColumns = [
     'team'
 ];
 
-const tournamentColumns = [
-    'id',
-    'title',
-    'entry_fee',
-    'tournament_size',
-    'total_prizes',
-    'type'
-];
-
 const draftPickColumns = [
     'user_id',
     'picked_at',
@@ -54,7 +45,8 @@ const exposureDataColumns = [
     'drafted_teams',
     'drafted_players',
     'pos_picks_by_round',
-    'entries_running_totals'
+    'entries_running_totals',
+    'tournaments',
 ];
 
 const adpDataColumns = [
@@ -76,7 +68,6 @@ const refreshTokenColumns = [
 
 module.exports = {
     playerColumns,
-    tournamentColumns,
     draftPickColumns,
     exposureDataColumns,
     adpDataColumns,

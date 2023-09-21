@@ -2,13 +2,13 @@ const RowData = require('../models/uploadModel');
 const AdpRow = require('../models/adpModel');
 const { csvColumns, adpCsvColumns } =  require('../constants/csv-columns');
 const dbModel = require('../models/dbModel');
-const { getTournamentsToInsert } = require('../utils/tournaments.utils');
 const {
     generateDraftSpotJSON,
     generateDraftedTeamsJSON,
     generateDraftedPlayersExposureJSON,
     generatePositionPicksByRoundJSON,
     generateTotalDraftsByDateJSON,
+    generateTournamentsJSON,
 } = require('../utils/upload-data.utils');
 const { getPlayersToInsert } = require('../utils/players.utils');
 const { EXPOSURE_TYPES } = require('../constants/types');
@@ -39,17 +39,6 @@ exports.uploadFile = async function (req, res) {
         return res.status(400).send(`Error . ${rowData.filter(row => row.hasError()).map(row => row.getError()).join(', ')}`); // TODO: Simplify for prod
     }
 
-    // Insert new tournaments that don't already exist in the database
-    const { rows: tournamentRows } = await dbModel.getAllTournaments();
-    let tournamentsToInsert = getTournamentsToInsert(tournamentRows, rowData, exposureType);
-    if (tournamentsToInsert.length > 0) {
-        try {
-            await dbModel.insertTournaments(tournamentsToInsert);
-        } catch (error) {
-            res.status(500).send('An error occured while inserting new tournaments', error);
-        }
-    }
-
     // Exposure Data
     try {
         await dbModel.invalidatePreviousExposureData(userId, exposureType);
@@ -59,8 +48,9 @@ exports.uploadFile = async function (req, res) {
         const draftedPlayersJSON = generateDraftedPlayersExposureJSON(rowData);
         const posPicksByRoundJSON = generatePositionPicksByRoundJSON(rowData);
         const totalDraftsByDateJSON = generateTotalDraftsByDateJSON(rowData);
+        const tournamentsJSON = generateTournamentsJSON(rowData);
 
-        await dbModel.insertExposureData(userId, exposureType, draftSpotJSON, draftedTeamsJSON, draftedPlayersJSON, posPicksByRoundJSON, totalDraftsByDateJSON);
+        await dbModel.insertExposureData(userId, exposureType, draftSpotJSON, draftedTeamsJSON, draftedPlayersJSON, posPicksByRoundJSON, totalDraftsByDateJSON, tournamentsJSON);
 
         res.status(200).send('Successfully processed file');
     } catch (error) {

@@ -149,10 +149,46 @@ const generateTotalDraftsByDateJSON = (arr) => {
     return JSON.stringify([...totalDraftsByDateMap.values()]);
 }
 
+// arr: RowData[] - array of RowData objects representing the uploaded data
+// returns a JSON object containing the tournaments found in the file
+const generateTournamentsJSON = (arr) => {
+    const tournamentSet = new Set();
+    const tournaments = [];
+
+    arr.forEach(row => {
+        let tournamentId = row.getVal('Tournament');
+        let weeklyWinnerId = row.getVal('Weekly Winner');
+
+        if (tournamentId !== '' && !tournamentSet.has(tournamentId)) {
+            tournaments.push({
+                id: tournamentId,
+                title: row.getVal('Tournament Title'),
+                entryFee: +row.getVal('Tournament Entry Fee'),
+                tournamentSize: +row.getVal('Tournament Size'),
+                totalPrizes: +row.getVal('Tournament Total Prizes')
+            });
+            tournamentSet.add(tournamentId);
+        } else if (weeklyWinnerId !== '' && !tournamentSet.has(weeklyWinnerId)) {
+            // TODO: This assumes all WW are tournaments. Might not scale
+            tournaments.push({
+                id: weeklyWinnerId,
+                title: row.getVal('Weekly Winner Title'),
+                entryFee: +row.getVal('Weekly Winner Entry Fee'),
+                tournamentSize: +row.getVal('Weekly Winner Size'),
+                totalPrizes: +row.getVal('Weekly Winner Total Prizes')
+        }   );
+            tournamentSet.add(weeklyWinnerId);
+        }
+    });
+
+    return JSON.stringify(tournaments);
+}
+
 module.exports = {
     generateDraftSpotJSON,
     generateDraftedTeamsJSON,
     generateDraftedPlayersExposureJSON,
     generatePositionPicksByRoundJSON,
     generateTotalDraftsByDateJSON,
+    generateTournamentsJSON,
 };

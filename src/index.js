@@ -18,14 +18,12 @@ app.use('/api', router);
 
 var uploadRoutes = require('./routes/uploadRoutes')
     playerRoutes = require('./routes/playerRoutes')
-    tournamentRoutes = require('./routes/tournamentRoutes')
     adpRoutes = require('./routes/adpRoutes')
     userRoutes = require('./routes/userRoutes')
 
 // Register the routes
 uploadRoutes(router);
 playerRoutes(router);
-tournamentRoutes(router);
 adpRoutes(router);
 userRoutes(router);
 
