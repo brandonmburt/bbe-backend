@@ -34,7 +34,7 @@ const generateDraftSpotJSON = (arr) => {
 
 
 // arr: RowData[] - array of RowData objects representing the uploaded data
-// returns a JSON object containing the drafted teams and corresponding data
+// returns an array: [number of teams processed, JSON object containing the drafted teams and corresponding data]
 const generateDraftedTeamsJSON = (arr) => {
     let draftedTeamsMap = new Map();
     arr.forEach(row => {
@@ -82,7 +82,7 @@ const generateDraftedTeamsJSON = (arr) => {
         return returnObj;
     });
 
-    return JSON.stringify(res);
+    return [res.length, JSON.stringify(res)];
 }
 
 
@@ -196,7 +196,7 @@ const generateTournamentsJSON = (arr) => {
                 entryFee: +row.getVal('Weekly Winner Entry Fee'),
                 tournamentSize: +row.getVal('Weekly Winner Size'),
                 totalPrizes: +row.getVal('Weekly Winner Total Prizes')
-        }   );
+            });
             tournamentSet.add(weeklyWinnerId);
         }
     });

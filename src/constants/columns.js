@@ -4,7 +4,8 @@ const playerColumns = [
     'first_name',
     'last_name',
     'pos',
-    'team'
+    'team',
+    'manual_player_id',
 ];
 
 const draftPickColumns = [

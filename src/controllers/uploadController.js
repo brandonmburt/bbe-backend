@@ -10,7 +10,7 @@ const {
     generateTotalDraftsByDateJSON,
     generateTournamentsJSON,
 } = require('../utils/upload-data.utils');
-const { getPlayersToInsert } = require('../utils/players.utils');
+const { getPlayersToInsert, generateManualPlayerId } = require('../utils/players.utils');
 const { EXPOSURE_TYPES } = require('../constants/types');
 
 exports.uploadFile = async function (req, res) {
@@ -44,7 +44,7 @@ exports.uploadFile = async function (req, res) {
         await dbModel.invalidatePreviousExposureData(userId, exposureType);
 
         const draftSpotJSON = generateDraftSpotJSON(rowData);
-        const draftedTeamsJSON = generateDraftedTeamsJSON(rowData);
+        const [numTeamsProcessed, draftedTeamsJSON] = generateDraftedTeamsJSON(rowData);
         const draftedPlayersJSON = generateDraftedPlayersExposureJSON(rowData);
         const posPicksByRoundJSON = generatePositionPicksByRoundJSON(rowData);
         const totalDraftsByDateJSON = generateTotalDraftsByDateJSON(rowData);
@@ -52,7 +52,7 @@ exports.uploadFile = async function (req, res) {
 
         await dbModel.insertExposureData(userId, exposureType, draftSpotJSON, draftedTeamsJSON, draftedPlayersJSON, posPicksByRoundJSON, totalDraftsByDateJSON, tournamentsJSON);
 
-        res.status(200).send('Successfully processed file');
+        res.status(200).send('Successfully processed ' + numTeamsProcessed.toString() + ' drafts');
     } catch (error) {
         console.log(error);
         res.status(500).send('Unable to parse exposure data', error);
@@ -89,29 +89,30 @@ exports.uploadAdpFile = async function (req, res) {
     /* Insert new players that don't already exist in the database */
     // TODO: Handle instances when a player changes teams or position
     try {
-        const { rows: playerRows }  = await dbModel.getAllPlayers();
+        const { rows: playerRows } = await dbModel.getAllPlayers();
         let playersToInsert = getPlayersToInsert(playerRows, adpRowData);
         if (playersToInsert.length > 0) {
             await dbModel.insertPlayers(playersToInsert);
         }
     } catch(error) {
-        res.status(500).send('Unable to process players', error);
+        return res.status(500).send('Unable to process players: ' + error);
     }
 
     let arr = adpRowData.map(row => {
         return {
-            player_id: row.getVal('id'),
+            playerId: row.getVal('id'),
             adp: row.getVal('adp'),
             posRank: row.getVal('positionRank'),
+            manualPlayerId: generateManualPlayerId(row)
         }
     });
 
     try {
         await dbModel.invalidatePreviousAdpData(exposureType);
         await dbModel.insertAdpData(arr, exposureType);
-        res.status(200).send('Successfully processed new ADP data');
+        return res.status(200).send('Successfully processed new ADP data');
     } catch (error) {
-        res.status(500).send('Inserting ADP data failed', error);
+        return res.status(500).send('Inserting ADP data failed: ' +  error);
     }
 
 }

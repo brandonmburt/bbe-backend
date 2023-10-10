@@ -31,6 +31,9 @@ const TEAM_ABBREVIATIONS = {
     'Tampa Bay Buccaneers': 'TB',
     'Tennessee Titans': 'TEN',
     'Washington Commanders': 'WAS',
+    '': '',
+    null: '',
+    undefined: '',
 }
 
 module.exports = {

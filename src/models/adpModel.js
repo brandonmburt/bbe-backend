@@ -36,14 +36,6 @@ class AdpRow {
         return this['First Name'] + ' ' + this['Last Name'];
     }
 
-    getCondensedData() {
-        return {
-            player_id: this['id'],
-            adp: this['adp'],
-            posRank: this['positionRank'],
-        }
-    }
-
 }
 
 module.exports = AdpRow;
