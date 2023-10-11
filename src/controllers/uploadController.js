@@ -20,7 +20,8 @@ exports.uploadFile = async function (req, res) {
 
     const fileContent = req.file.buffer.toString('utf-8');
     const rows = fileContent.split('\n').map(row => row.trim().split(','));
-    const { userId, exposureType } = req.body;
+    const { exposureType } = req.body;
+    const userId = req.user.id;
 
     if (!userId || !exposureType || rows.length === 0) return res.status(400).send('Missing request info');
     else if (!EXPOSURE_TYPES.includes(exposureType)) return res.status(400).send('Invalid exposure type');
@@ -65,7 +66,8 @@ exports.uploadAdpFile = async function (req, res) {
     if (!req.file) return res.status(400).send('No file received');
     if (req.file.mimetype !== 'text/csv') return res.status(400).send(`Invalid file type: ${req.file.mimetype}`);
 
-    const { userId, exposureType } = req.body;
+    const { exposureType } = req.body;
+    const userId = req.user.id;
 
     const fileContent = req.file.buffer.toString('utf-8');
     const rows = fileContent.split('\n').map(row => row.trim().split(`\"`).join('').split(','));

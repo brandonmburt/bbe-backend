@@ -83,12 +83,12 @@ exports.signInUser = async function (req, res) {
 
 exports.getExposureData = async function (req, res) {
 
-    if (!req.query.userId) {
+    if (!req.user.id) {
         return res.status(400).send('No user id provided');
     }
 
     try {
-        const { rows } = await dbModel.getExposureData(req.query.userId);
+        const { rows } = await dbModel.getExposureData(req.user.id);
         let exposureData = {};
         rows.forEach(row => {
             const {

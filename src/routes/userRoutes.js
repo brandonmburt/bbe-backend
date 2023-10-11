@@ -1,5 +1,5 @@
 var userController = require('../controllers/userController');
-var authMiddleware = require('../middlewares/authMiddleware');
+var auth = require('../middlewares/authMiddleware');
 
 module.exports = function(app) {
     app.route('/signUp')
@@ -9,13 +9,13 @@ module.exports = function(app) {
         .post(userController.signInUser)
 
     app.route('/exposure')
-        .get(userController.getExposureData)
+        .get(auth.authenticateToken, userController.getExposureData)
 
     app.route('/deleteExposure')
-        .post(authMiddleware.authenticateToken, userController.deleteExposureData)
+        .post(auth.authenticateToken, userController.deleteExposureData)
 
     app.route('/token')
-        .post(authMiddleware.generateRefreshToken) // TODO move to controller
+        .post(auth.generateRefreshToken) // TODO move to controller
 
     app.route('/deleteToken')
         .post(userController.deleteRefreshToken);
