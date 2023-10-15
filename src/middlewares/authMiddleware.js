@@ -3,7 +3,8 @@ const dbModel = require('../models/dbModel');
 
 // TODO: Define the User
 exports.generateAccessToken = function (user) {
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' }); // TODO: 30s is only for testing
+    // TODO: Refresh token isn't working; setting to 7 days until fixed
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' });
 }
 
 exports.generateRefreshToken = async function (req, res) {
@@ -51,6 +52,19 @@ exports.authenticateAdmin = function (req, res, next) {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
         else if (user.role !== 'admin') return res.sendStatus(403);
+        req.user = user;
+        next();
+    });
+}
+/* If a user's role is not "user" or "admin", return unauthorized response (used to limit demo account) */
+exports.authenticateAccess = function (req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Format: Bearer <token>
+    if (token == null) return res.sendStatus(401);
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err) return res.sendStatus(403);
+        else if (user.role !== 'admin' && user.role !== 'user') return res.sendStatus(403);
         req.user = user;
         next();
     });

@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const auth = require('../middlewares/authMiddleware');
 const { EXPOSURE_TYPES } = require('../constants/types');
 require('dotenv').config();
+const { getCurrentTimestamp } = require('../utils/date.utils');
 
 exports.deleteRefreshToken = async function (req, res) {
     const refreshToken = req.body.token;
@@ -51,6 +52,7 @@ exports.signInUser = async function (req, res) {
             throw new Error('No user found with that email');
         } else {
             dbUser = rows[0];
+            dbModel.updateUserLastLogin(dbUser.id, getCurrentTimestamp()); // Update the user's last login timestamp
         }
     } catch (error) {
         res.status(500).send('No user found with that email');

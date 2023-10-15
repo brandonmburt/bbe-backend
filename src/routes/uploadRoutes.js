@@ -7,7 +7,7 @@ const upload = multer({ storage: storage })
 
 module.exports = function(app) {
     app.route('/upload')
-        .post(auth.authenticateToken, upload.single('file'), uploadController.uploadFile)
+        .post(auth.authenticateToken, auth.authenticateAccess, upload.single('file'), uploadController.uploadFile)
 
     app.route('/admin/upload/adp')
         .post(auth.authenticateToken, auth.authenticateAdmin, upload.single('file'), uploadController.uploadAdpFile)

@@ -12,7 +12,7 @@ module.exports = function(app) {
         .get(auth.authenticateToken, userController.getExposureData)
 
     app.route('/deleteExposure')
-        .post(auth.authenticateToken, userController.deleteExposureData)
+        .post(auth.authenticateToken, auth.authenticateAccess, userController.deleteExposureData)
 
     app.route('/token')
         .post(auth.generateRefreshToken) // TODO move to controller

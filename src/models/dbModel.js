@@ -72,6 +72,10 @@ function deleteExposureData(userId, exposureType) {
     return db.query('UPDATE uf.exposure_data SET active = $1 WHERE user_id = $2 AND type = $3 AND active = $4', [false, userId, exposureType, true]);
 }
 
+function updateUserLastLogin(userId, timestamp) {
+    return db.query('UPDATE uf.users SET last_login_date = $1 WHERE id = $2', [timestamp, userId]);
+}
+
 module.exports = {
     getAllPlayers,
     insertNewUser,
@@ -88,4 +92,5 @@ module.exports = {
     getRefreshToken,
     deleteRefreshToken,
     deleteExposureData,
+    updateUserLastLogin,
 };
