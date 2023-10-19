@@ -17,13 +17,11 @@ var router = express.Router();
 app.use('/api', router);
 
 var uploadRoutes = require('./routes/uploadRoutes')
-    playerRoutes = require('./routes/playerRoutes')
     adpRoutes = require('./routes/adpRoutes')
     userRoutes = require('./routes/userRoutes')
 
 // Register the routes
 uploadRoutes(router);
-playerRoutes(router);
 adpRoutes(router);
 userRoutes(router);
 

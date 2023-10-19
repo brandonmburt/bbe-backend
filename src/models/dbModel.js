@@ -1,6 +1,6 @@
 const db = require('../config/db');
 const { generatePlaceholderString, generateColumnsString } = require('../utils/query.utils');
-const { playerColumns, exposureDataColumns, adpDataColumns, userCreationColumns } = require('../constants/columns');
+const { exposureDataColumns, adpDataColumns, userCreationColumns, replacementRulesColumns } = require('../constants/columns');
 
 function getAllPlayers() {
     return db.query('SELECT * FROM uf.players');
@@ -15,13 +15,6 @@ function insertNewUser(user) {
 function getUserByEmail(email) {
     const query = 'SELECT id, email, password, role FROM uf.users WHERE active = $1 AND email = $2 LIMIT 1;'
     return db.query(query, [true, email]);
-}
-
-function insertPlayers(playersArr) {
-    let columnsString = generateColumnsString(playerColumns);
-    let placeholderString = generatePlaceholderString(playerColumns.length, playersArr.length);
-    const playerQuery = `INSERT INTO uf.players ${columnsString} VALUES ${placeholderString}`;
-    return db.query(playerQuery, playersArr.flat());
 }
 
 function invalidatePreviousExposureData(userId, exposureType) {
@@ -76,11 +69,23 @@ function updateUserLastLogin(userId, timestamp) {
     return db.query('UPDATE uf.users SET last_login_date = $1 WHERE id = $2', [timestamp, userId]);
 }
 
+function addReplacementRule(fName, lName, fNameReplacement, lNameReplacement) {
+    const query = `INSERT INTO uf.replacement_rules ${generateColumnsString(replacementRulesColumns)} VALUES ${generatePlaceholderString(replacementRulesColumns.length, 1)}`;
+    return db.query(query, [fName, lName, fNameReplacement, lNameReplacement]);
+}
+
+function deleteReplacementRule(id) {
+    return db.query('UPDATE uf.replacement_rules SET active = $1 WHERE id = $2', [false, id]);
+}
+
+function getReplacementRules() {
+    return db.query('SELECT * FROM uf.replacement_rules WHERE active = $1', [true]);
+}
+
 module.exports = {
     getAllPlayers,
     insertNewUser,
     getUserByEmail,
-    insertPlayers,
     invalidatePreviousExposureData,
     invalidatePreviousAdpData,
     insertExposureData,
@@ -93,4 +98,7 @@ module.exports = {
     deleteRefreshToken,
     deleteExposureData,
     updateUserLastLogin,
+    addReplacementRule,
+    deleteReplacementRule,
+    getReplacementRules,
 };

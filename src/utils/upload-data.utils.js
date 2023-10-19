@@ -48,7 +48,7 @@ const generateDraftedTeamsJSON = (arr) => {
                 weeklyWinnerId: row.getVal('Weekly Winner'),
                 draftEntryFee: row.getEntryFee(),
                 draftSize: row.getVal('Draft Size'),
-                qbs: [], // Array of [pickNumber, id, timestamp]
+                qbs: [], // Array of [pick number, player key, timestamp]
                 rbs: [],
                 wrs: [],
                 tes: [],
@@ -59,9 +59,7 @@ const generateDraftedTeamsJSON = (arr) => {
             // TODO: Throw error and terminate upload process
             console.log('ERROR: Invalid position');
         } else {
-            draftedTeamsMap.get(draftEntry)[(position.toLowerCase() + 's')].push(
-                [row.getVal('Pick Number'), row.getVal('Appearance'), row.getVal('Picked At')]
-            );
+            draftedTeamsMap.get(draftEntry)[(position.toLowerCase() + 's')].push(row.getSelectionInfo());
             draftedTeamsMap.get(draftEntry).lastTimestamp = row.getVal('Picked At');
         }
     })
@@ -91,21 +89,26 @@ const generateDraftedTeamsJSON = (arr) => {
 const generateDraftedPlayersExposureJSON = (arr) => {
     let draftedPlayersMap = new Map();
     arr.forEach(row => {
-        const playerId = row.getVal('Appearance');
-        if (!draftedPlayersMap.has(playerId)) {
-            draftedPlayersMap.set(playerId, {
-                playerId: playerId,
+        const playerKey = row.getPlayerKey();
+        if (!draftedPlayersMap.has(playerKey)) {
+            draftedPlayersMap.set(playerKey, {
+                playerId: playerKey,
                 name: row.getFullName(),
+                team: row.getVal('Team'),
+                position: row.getVal('Position'),
                 sumEntryFees: 0,
                 timesDrafted: 0,
                 sumDraftPickNumber: 0, // used to calculate average pick number prior to returning data
-                selectionInfo: [], // [draft entry, pick number, timestamp][]
+                selectionInfo: [], // [pick number, draft entry, timestamp][]
+                additionalKeys: row.getAdditionalKeys(),
             });
         }
-        draftedPlayersMap.get(playerId).sumEntryFees += row.getEntryFee();
-        draftedPlayersMap.get(playerId).timesDrafted++;
-        draftedPlayersMap.get(playerId).sumDraftPickNumber += row.getVal('Pick Number');
-        draftedPlayersMap.get(playerId).selectionInfo.push(row.getSelectionInfo());
+        draftedPlayersMap.get(playerKey).sumEntryFees += row.getEntryFee();
+        draftedPlayersMap.get(playerKey).timesDrafted++;
+        draftedPlayersMap.get(playerKey).sumDraftPickNumber += row.getVal('Pick Number');
+        draftedPlayersMap.get(playerKey).selectionInfo.push(
+            [row.getVal('Pick Number'), row.getVal('Draft Entry'), row.getVal('Picked At')]
+        );
     });
     return JSON.stringify([...draftedPlayersMap.values()].map(player => {
         let cleanedObj = {...player};
@@ -204,6 +207,30 @@ const generateTournamentsJSON = (arr) => {
     return JSON.stringify(tournaments);
 }
 
+/**
+ * Convert any row properties to adhere to the replacement rules
+ * @param {AdpRow[] | RowData[]} rowData - array of RowData or AdpRow objects representing the uploaded data
+ * @param {obj[]} rules - array of objects containing the replacement rules
+ * Important: rowData must have getKeyForReplacementRulesCheck(), setFirstName(), and setLastName() methods
+ */
+const applyReplacementRules = (rowData, rules) => {
+    // key: first_name_match~last_name_match; value: first_name_replacement~last_name_replacement
+    let rulesMap = new Map();
+    rules.forEach(rule => {
+        const { first_name_match, last_name_match, first_name_replacement, last_name_replacement } = rule;
+        rulesMap.set(`${first_name_match}~${last_name_match}`, `${first_name_replacement}~${last_name_replacement}`);
+    });
+    rowData.forEach(row => {
+        let key = row.getKeyForReplacementRulesCheck();
+        if (rulesMap.has(key)) {
+            let [first_name_replacement, last_name_replacement] = rulesMap.get(key).split('~');
+            row.setFirstName(first_name_replacement);
+            row.setLastName(last_name_replacement);
+            console.log('Replacement:', key.split('~').join(' '), '->', first_name_replacement, last_name_replacement);
+        }
+    });
+}
+
 module.exports = {
     generateDraftSpotJSON,
     generateDraftedTeamsJSON,
@@ -211,4 +238,5 @@ module.exports = {
     generatePositionPicksByRoundJSON,
     generateTotalDraftsByDateJSON,
     generateTournamentsJSON,
+    applyReplacementRules,
 };

@@ -1,13 +1,3 @@
-const playerColumns = [
-    'id',
-    'name',
-    'first_name',
-    'last_name',
-    'pos',
-    'team',
-    'manual_player_id',
-];
-
 const draftPickColumns = [
     'user_id',
     'picked_at',
@@ -67,11 +57,18 @@ const refreshTokenColumns = [
     'token',
 ];
 
+const replacementRulesColumns = [
+    'first_name_match',
+    'last_name_match',
+    'first_name_replacement',
+    'last_name_replacement',
+];
+
 module.exports = {
-    playerColumns,
     draftPickColumns,
     exposureDataColumns,
     adpDataColumns,
     userCreationColumns,
     refreshTokenColumns,
+    replacementRulesColumns
 }

@@ -137,3 +137,56 @@ exports.deleteExposureData = async function (req, res) {
         res.status(500).send('Error: ', error);
     }
 }
+
+exports.addReplacementRule = async function (req, res) {
+    const userId = req.user.id
+    const { fName, lName, fNameReplacement, lNameReplacement } = req.body;
+
+    if (!userId || !fName || !lName || !fNameReplacement || !lNameReplacement) {
+        return res.status(400).send('Missing info');
+    }
+
+    try {
+        await dbModel.addReplacementRule(fName, lName, fNameReplacement, lNameReplacement);
+        res.status(200).send('Replacement Rule successfully added');
+    } catch (error) {
+        res.status(500).send('Error: ', error);
+    }
+}
+
+exports.deleteReplacementRule = async function (req, res) {
+    const userId = req.user.id
+    const { id } = req.body;
+
+    if (!userId || !id) {
+        return res.status(400).send('Missing user id or id');
+    }
+
+    try {
+        await dbModel.deleteReplacementRule(id);
+        res.status(200).send('Replacement Rule successfully deleted');
+    } catch (error) {
+        res.status(500).send('Error: ', error);
+    }
+
+}
+
+exports.getReplacementRules = async function (req, res) {
+    try {
+        const { rows } = await dbModel.getReplacementRules();
+        const rules = rows.map(row => {
+            const { id, first_name_match, last_name_match, first_name_replacement, last_name_replacement, created_at } = row;
+            return {
+                id,
+                firstNameMatch: first_name_match,
+                lastNameMatch: last_name_match,
+                firstNameReplacement: first_name_replacement,
+                lastNameReplacement: last_name_replacement,
+                createdAt: created_at,
+            }
+        })
+        res.status(200).json({rules});
+    } catch (error) {
+        res.status(500).send('Error: ', error);
+    }
+}

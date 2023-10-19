@@ -1,4 +1,6 @@
 const { adpCsvColumns } =  require('../constants/csv-columns');
+const { TEAM_ABBREVIATIONS } = require('../constants/teams');
+const { cleanLastName, removeWhitespaceAndSpecialChars } = require('../utils/players.utils');
 
 class AdpRow {
     // row: string[] - array of strings representing the row data
@@ -15,6 +17,19 @@ class AdpRow {
                 else this[header] = value;
             });
         }
+        this['lastName'] = cleanLastName(this['lastName']);
+    }
+
+    getKeyForReplacementRulesCheck() {
+        return `${this['firstName']}~${this['lastName']}`;
+    }
+
+    setFirstName(firstName) {
+        this['firstName'] = firstName;
+    }
+
+    setLastName(lastName) {
+        this['lastName'] = lastName;
     }
 
     hasError() {
@@ -32,8 +47,30 @@ class AdpRow {
         return this[column];
     }
 
-    getFullName() {
-        return this['First Name'] + ' ' + this['Last Name'];
+    getPlayerKey() {
+        return [
+            removeWhitespaceAndSpecialChars(this['firstName']),
+            removeWhitespaceAndSpecialChars(this['lastName']),
+            TEAM_ABBREVIATIONS[this['teamName']],
+            this['slotName']
+        ].join('~');
+    }
+
+    /*
+    * Return an array of additional keys to identify players that have changed teams or positions
+    * [first~last~pos, first~last~team] // 0: indicates changed team; 1: indicates changed pos
+    */
+    getAdditionalKeys() {
+        const [firstName, lastName, team, pos] = [
+            removeWhitespaceAndSpecialChars(this['firstName']),
+            removeWhitespaceAndSpecialChars(this['lastName']),
+            TEAM_ABBREVIATIONS[this['teamName']],
+            this['slotName']
+        ];
+        return [
+            [firstName, lastName, pos].join('~'),
+            [firstName, lastName, team].join('~'),
+        ];
     }
 
 }

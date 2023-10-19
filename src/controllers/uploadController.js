@@ -9,9 +9,10 @@ const {
     generatePositionPicksByRoundJSON,
     generateTotalDraftsByDateJSON,
     generateTournamentsJSON,
+    applyReplacementRules,
 } = require('../utils/upload-data.utils');
-const { getPlayersToInsert, generateManualPlayerId } = require('../utils/players.utils');
 const { EXPOSURE_TYPES } = require('../constants/types');
+const { TEAM_ABBREVIATIONS } = require('../constants/teams');
 
 exports.uploadFile = async function (req, res) {
 
@@ -35,6 +36,15 @@ exports.uploadFile = async function (req, res) {
     }
 
     const rowData = rows.map(row => new RowData(row)); // each row represents a player selection
+
+    const replacementRules = [];
+    try {
+        const { rows } = await dbModel.getReplacementRules();
+        if (rows.length > 0) replacementRules.push(...rows);
+    } catch (error) {
+        return res.status(500).send('Unable to fetch relacement rules. Please try again later.');
+    }
+    if (replacementRules.length > 0) applyReplacementRules(rowData, replacementRules);
 
     if (rowData.some(row => row.hasError())) {
         return res.status(400).send(`Error . ${rowData.filter(row => row.hasError()).map(row => row.getError()).join(', ')}`); // TODO: Simplify for prod
@@ -84,34 +94,35 @@ exports.uploadAdpFile = async function (req, res) {
     
     const adpRowData = rows.map(row => new AdpRow(row));
 
+    const replacementRules = [];
+    try {
+        const { rows } = await dbModel.getReplacementRules();
+        if (rows.length > 0) replacementRules.push(...rows);
+    } catch (error) {
+        return res.status(500).send('Unable to fetch relacement rules. Please try again later.');
+    }
+    if (replacementRules.length > 0) applyReplacementRules(adpRowData, replacementRules);
+
     if (adpRowData.some(row => row.hasError())) {
         return res.status(400).send(`Error . ${adpRowData.filter(row => row.hasError()).map(row => row.getError()).join(', ')}`); // TODO: Simplify for prod
     }
 
-    /* Insert new players that don't already exist in the database */
-    // TODO: Handle instances when a player changes teams or position
-    try {
-        const { rows: playerRows } = await dbModel.getAllPlayers();
-        let playersToInsert = getPlayersToInsert(playerRows, adpRowData);
-        if (playersToInsert.length > 0) {
-            await dbModel.insertPlayers(playersToInsert);
-        }
-    } catch(error) {
-        return res.status(500).send('Unable to process players: ' + error);
-    }
-
-    let arr = adpRowData.map(row => {
+    let adpArr = adpRowData.map(row => {
         return {
-            playerId: row.getVal('id'),
+            playerId: row.getPlayerKey(),
             adp: row.getVal('adp'),
+            firstName: row.getVal('firstName'),
+            lastName: row.getVal('lastName'),
+            team: TEAM_ABBREVIATIONS[row.getVal('teamName')],
+            pos: row.getVal('slotName'),
             posRank: row.getVal('positionRank'),
-            manualPlayerId: generateManualPlayerId(row)
+            additionalKeys: row.getAdditionalKeys(),
         }
     });
 
     try {
         await dbModel.invalidatePreviousAdpData(exposureType);
-        await dbModel.insertAdpData(arr, exposureType);
+        await dbModel.insertAdpData(adpArr, exposureType);
         return res.status(200).send('Successfully processed new ADP data');
     } catch (error) {
         return res.status(500).send('Inserting ADP data failed: ' +  error);
