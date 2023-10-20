@@ -1,5 +1,6 @@
 const { EXPOSURE_TYPES } = require('../constants/types');
 const dbModel = require('../models/dbModel');
+const { shouldIncludeExposureType, getDraftedPlayersForExposureType } = require('../utils/adps.utils');
 
 exports.getADPs = async function (req, res) {
 
@@ -16,16 +17,15 @@ exports.getADPs = async function (req, res) {
             let adpData = {};
             rows.forEach(row => {
                 const { adps, type } = row;
-                if (EXPOSURE_TYPES.includes(type) && exposureRows.some(exposureRow => exposureRow.type === type)) {
-                    // TODO: Resurrection needs to be included even if there's no exposure for it
+                if (EXPOSURE_TYPES.includes(type) && shouldIncludeExposureType(type, exposureRows)) {
                     const adpMap = new Map();
                     adps.forEach(adpObj => {
                         const { playerId, additionalKeys } = adpObj;
                         [playerId, ...additionalKeys].forEach(key => adpMap.set(key, adpObj));
                     });
-                    const filteredAdpMap = new Map(); // key: playerKey, value: adp; filtered to only include players that have been drafted
+                    const filteredAdpMap = new Map(); // key: playerKey, value: adpObj
                     const additionalKeysArr = [];
-                    const { drafted_players: draftedPlayers } = exposureRows.find(exposureRow => exposureRow.type === type);
+                    const draftedPlayers = getDraftedPlayersForExposureType(type, exposureRows);
                     draftedPlayers.forEach(player => {
                         const { playerId, additionalKeys } = player;
                         if (adpMap.has(playerId)) {
