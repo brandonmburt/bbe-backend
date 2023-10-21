@@ -64,13 +64,15 @@ const generateDraftedTeamsJSON = (arr) => {
         }
     })
 
+    const INSTANT_DRAFT_MINUTES = 5; // Arbitrary value (5 minutes) used to determine if a draft is instant
     const SLOW_DRAFT_MINUTES = 240; // Arbitrary value (4 hours) used to determine if a draft is slow
 
     let res = [...draftedTeamsMap.values()].map(obj => {
         const d1 = new Date(obj.firstTimestamp), d2 = new Date(obj.lastTimestamp);
         const timeDifferenceMs = d1.getTime() - d2.getTime(); // Calculate the time difference in milliseconds
         const minutesDifference = Math.floor(timeDifferenceMs / (1000 * 60)); // Convert milliseconds to minutes
-        const draftType = minutesDifference >= SLOW_DRAFT_MINUTES ? 'slow' : 'fast';
+        const draftType = minutesDifference <= INSTANT_DRAFT_MINUTES ? 'instant' :
+            minutesDifference <= SLOW_DRAFT_MINUTES ? 'fast' : 'slow';
         let returnObj = {
             draftType,
             ...obj
