@@ -65,14 +65,14 @@ const generateDraftedTeamsJSON = (arr) => {
     })
 
     const INSTANT_DRAFT_MINUTES = 5; // Arbitrary value (5 minutes) used to determine if a draft is instant
-    const SLOW_DRAFT_MINUTES = 240; // Arbitrary value (4 hours) used to determine if a draft is slow
+    const FAST_DRAFT_MINUTES = 240; // Arbitrary value (4 hours) used to determine if a draft is fast or slow
 
     let res = [...draftedTeamsMap.values()].map(obj => {
         const d1 = new Date(obj.firstTimestamp), d2 = new Date(obj.lastTimestamp);
         const timeDifferenceMs = d1.getTime() - d2.getTime(); // Calculate the time difference in milliseconds
-        const minutesDifference = Math.floor(timeDifferenceMs / (1000 * 60)); // Convert milliseconds to minutes
+        const minutesDifference = Math.abs(Math.floor(timeDifferenceMs / (1000 * 60))); // Convert milliseconds to minutes
         const draftType = minutesDifference <= INSTANT_DRAFT_MINUTES ? 'instant' :
-            minutesDifference <= SLOW_DRAFT_MINUTES ? 'fast' : 'slow';
+            minutesDifference <= FAST_DRAFT_MINUTES ? 'fast' : 'slow';
         let returnObj = {
             draftType,
             ...obj
@@ -233,6 +233,22 @@ const applyReplacementRules = (rowData, rules) => {
     });
 }
 
+/**
+ * Sort the uploaded file rows by 'Draft Entry' then by 'Picked At' timestamp
+ * @param {RowData[]} arr - array of RowData objects representing the uploaded data
+ */
+const sortUploadFileRows = (arr) => {
+    arr.sort((a, b) => {
+        const aTime = new Date(a.getVal('Picked At')).getTime();
+        const bTime = new Date(b.getVal('Picked At')).getTime();
+        const aEntry = a.getVal('Draft Entry');
+        const bEntry = b.getVal('Draft Entry');
+        if (aEntry < bEntry) return -1;
+        if (aEntry > bEntry) return 1;
+        return aTime - bTime; // If 'Draft Entry' values are the same, sort by 'Picked At' timestamps
+    });
+}
+
 module.exports = {
     generateDraftSpotJSON,
     generateDraftedTeamsJSON,
@@ -241,4 +257,5 @@ module.exports = {
     generateTotalDraftsByDateJSON,
     generateTournamentsJSON,
     applyReplacementRules,
+    sortUploadFileRows,
 };

@@ -10,6 +10,7 @@ const {
     generateTotalDraftsByDateJSON,
     generateTournamentsJSON,
     applyReplacementRules,
+    sortUploadFileRows,
 } = require('../utils/upload-data.utils');
 const { EXPOSURE_TYPES } = require('../constants/types');
 const { TEAM_ABBREVIATIONS } = require('../constants/teams');
@@ -36,6 +37,7 @@ exports.uploadFile = async function (req, res) {
     }
 
     const rowData = rows.map(row => new RowData(row)); // each row represents a player selection
+    sortUploadFileRows(rowData);
 
     const replacementRules = [];
     try {
