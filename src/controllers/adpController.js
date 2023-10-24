@@ -47,7 +47,7 @@ exports.getADPs = async function (req, res) {
             res.status(200).json(JSON.stringify(adpData));
         }
     } catch (error) {
-        res.status(500).send('Error: Unable to fetch ADPs', error);
+        res.status(500).send('Error: Unable to fetch ADPs. ' + error.message);
     }
 
 }

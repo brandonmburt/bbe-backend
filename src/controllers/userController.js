@@ -30,11 +30,11 @@ exports.registerUser = async function (req, res) {
         if (rows.length > 0) {
             throw new Error('User already exists with that email');
         } else {
-            await dbModel.insertNewUser(user);        
+            await dbModel.insertNewUser(user);
             res.status(200).send('User successfully registered');
         }
     } catch (error) {
-        res.status(500).send('Error: Unable to register new user', error);
+        res.status(500).send(error.message);
     }
 
 }
@@ -55,13 +55,13 @@ exports.signInUser = async function (req, res) {
             dbModel.updateUserLastLogin(dbUser.id, getCurrentTimestamp()); // Update the user's last login timestamp
         }
     } catch (error) {
-        res.status(500).send('No user found with that email');
+        res.status(500).send(error.message);
     }
 
     try {
         await bcrypt.compare(password, dbUser.password, async (err, result) => {
             if (err) {
-                res.status(500).send('Error: Couldn\'t compare passwords', err);
+                res.status(500).send('Error: Couldn\'t compare passwords; ' + err);
             } else if (result) {
                 const accessToken = auth.generateAccessToken(dbUser);
                 let resObj = { ...dbUser, accessToken: accessToken };
@@ -78,7 +78,7 @@ exports.signInUser = async function (req, res) {
             }
         });
     } catch (error) {
-        res.status(500).send('Error: ', error);
+        res.status(500).send(error.message);
     }
 
 }

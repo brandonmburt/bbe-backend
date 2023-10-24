@@ -49,7 +49,7 @@ exports.uploadFile = async function (req, res) {
     if (replacementRules.length > 0) applyReplacementRules(rowData, replacementRules);
 
     if (rowData.some(row => row.hasError())) {
-        return res.status(400).send(`Error . ${rowData.filter(row => row.hasError()).map(row => row.getError()).join(', ')}`); // TODO: Simplify for prod
+        return res.status(400).send(`Error . ${rowData.filter(row => row.hasError()).map(row => row.getError()).join(', ')}`);
     }
 
     // Exposure Data
@@ -67,8 +67,7 @@ exports.uploadFile = async function (req, res) {
 
         res.status(200).send('Successfully processed ' + numTeamsProcessed.toString() + ' drafts');
     } catch (error) {
-        console.log(error);
-        res.status(500).send('Unable to parse exposure data', error);
+        res.status(500).send('Unable to parse exposure data' + error.message);
     }
 
 }
@@ -106,7 +105,7 @@ exports.uploadAdpFile = async function (req, res) {
     if (replacementRules.length > 0) applyReplacementRules(adpRowData, replacementRules);
 
     if (adpRowData.some(row => row.hasError())) {
-        return res.status(400).send(`Error . ${adpRowData.filter(row => row.hasError()).map(row => row.getError()).join(', ')}`); // TODO: Simplify for prod
+        return res.status(400).send(`Error . ${adpRowData.filter(row => row.hasError()).map(row => row.getError()).join(', ')}`);
     }
 
     let adpArr = adpRowData.map(row => {
@@ -127,7 +126,7 @@ exports.uploadAdpFile = async function (req, res) {
         await dbModel.insertAdpData(adpArr, exposureType);
         return res.status(200).send('Successfully processed new ADP data');
     } catch (error) {
-        return res.status(500).send('Inserting ADP data failed: ' +  error);
+        return res.status(500).send('Inserting ADP data failed. ' + error.message);
     }
 
 }
