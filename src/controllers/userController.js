@@ -52,7 +52,6 @@ exports.signInUser = async function (req, res) {
             throw new Error('No user found with that email');
         } else {
             dbUser = rows[0];
-            dbModel.updateUserLastLogin(dbUser.id, getCurrentTimestamp()); // Update the user's last login timestamp
         }
     } catch (error) {
         res.status(500).send(error.message);
@@ -64,14 +63,15 @@ exports.signInUser = async function (req, res) {
                 res.status(500).send('Error: Couldn\'t compare passwords; ' + err);
             } else if (result) {
                 const accessToken = auth.generateAccessToken(dbUser);
-                let resObj = { ...dbUser, accessToken: accessToken };
+                const { email, role } = dbUser;
+                let resObj = { email, role, accessToken: accessToken };
                 if (rememberMe === 'true') {
-                    const refreshToken = jwt.sign(dbUser, process.env.REFRESH_TOKEN_SECRET);
-                    // TODO: probably want better validations here
+                    const refreshToken = jwt.sign(dbUser, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
                     await dbModel.invalidatePreviousRefreshTokens(dbUser.id);
                     await dbModel.insertRefreshToken(refreshToken, dbUser.id);
                     resObj.refreshToken = refreshToken;
                 }
+                dbModel.updateUserLastLogin(dbUser.id, getCurrentTimestamp()); // Update the user's last login timestamp
                 res.status(200).send(resObj);
             } else {
                 res.status(500).send('Error: Incorrect password');

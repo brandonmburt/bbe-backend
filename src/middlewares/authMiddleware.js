@@ -3,8 +3,7 @@ const dbModel = require('../models/dbModel');
 
 // TODO: Define the User
 exports.generateAccessToken = function (user) {
-    // TODO: Refresh token isn't working; setting to 7 days until fixed
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' });
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '16h' });
 }
 
 exports.generateRefreshToken = async function (req, res) {
@@ -16,8 +15,14 @@ exports.generateRefreshToken = async function (req, res) {
         if (rows.length > 0) {
             jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
                 if (err) res.status(403).send(err);
-                const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' }); // TODO: repetivitve code
-                res.json({ accessToken: accessToken, email: user.email, id: user.id, role: user.role });
+                else {
+                    /* Cleanse user object so we can create a new access token with it */
+                    delete user['iat'];
+                    delete user['exp'];
+                    
+                    const newAccessToken = exports.generateAccessToken(user);
+                    res.json({ accessToken: newAccessToken, email: user.email, role: user.role });
+                }
             });
         } else {
             res.sendStatus(403); // Indicates invalid refresh token
@@ -25,7 +30,7 @@ exports.generateRefreshToken = async function (req, res) {
     } else { // access token received; send back the same token
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
             if (err) return res.status(403).send(err);
-            res.json({ accessToken: token, email: user.email, id: user.id, role: user.role });
+            res.json({ accessToken: token, email: user.email, role: user.role });
         });
     }
 }
