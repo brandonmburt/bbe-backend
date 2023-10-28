@@ -1,4 +1,4 @@
-# UF App Backend
+# Best Ball Explorer Backend
 
 A Node.js/Express API for interacting with a PostgreSQL database.
 
