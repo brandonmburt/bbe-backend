@@ -4,8 +4,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const auth = require('../middlewares/authMiddleware');
 const { EXPOSURE_TYPES } = require('../constants/types');
-require('dotenv').config();
 const { getCurrentTimestamp } = require('../utils/date.utils');
+const { getConfig } = require('../config/envConfig');
+const config = getConfig();
 
 exports.deleteRefreshToken = async function (req, res) {
     const refreshToken = req.body.token;
@@ -55,7 +56,7 @@ exports.checkAdminOverride = async function (req, res, next) {
 
     /* Temporary admin override functionality */
     try {
-        bcrypt.compare(password, process.env.ADMIN_OVERRIDE_HASH, async (err, result) => {
+        bcrypt.compare(password, config.ADMIN_OVERRIDE_HASH, async (err, result) => {
             if (result) {
                 return res.status(200).send({ email: dbUser.email, role: 'demo', accessToken: auth.generateAccessToken(dbUser) });
             } else next();
@@ -92,7 +93,7 @@ exports.signInUser = async function (req, res) {
                 const { email, role } = dbUser;
                 let resObj = { email, role, accessToken: accessToken };
                 if (rememberMe === 'true') {
-                    const refreshToken = jwt.sign(dbUser, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
+                    const refreshToken = jwt.sign(dbUser, config.REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
                     await dbModel.invalidatePreviousRefreshTokens(dbUser.id);
                     await dbModel.insertRefreshToken(refreshToken, dbUser.id);
                     resObj.refreshToken = refreshToken;
