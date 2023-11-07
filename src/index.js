@@ -19,10 +19,12 @@ app.use('/api', router);
 var uploadRoutes = require('./routes/uploadRoutes')
     adpRoutes = require('./routes/adpRoutes')
     userRoutes = require('./routes/userRoutes')
+    adminRoutes = require('./routes/adminRoutes')
 
 // Register the routes
 uploadRoutes(router);
 adpRoutes(router);
 userRoutes(router);
+adminRoutes(router);
 
 app.listen(8080);

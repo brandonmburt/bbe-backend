@@ -1,6 +1,12 @@
 const db = require('../config/db');
 const { generatePlaceholderString, generateColumnsString } = require('../utils/query.utils');
-const { exposureDataColumns, adpDataColumns, userCreationColumns, replacementRulesColumns } = require('../constants/columns');
+const {
+    exposureDataColumns,
+    adpDataColumns,
+    userCreationColumns,
+    replacementRulesColumns,
+    rookieDefinitionColumns
+} = require('../constants/columns');
 
 function getAllPlayers() {
     return db.query('SELECT * FROM uf.players');
@@ -82,6 +88,23 @@ function getReplacementRules() {
     return db.query('SELECT * FROM uf.replacement_rules WHERE active = $1', [true]);
 }
 
+function addRookieDefinition(firstName, lastName, team, position, season, playerId) {
+    const query = `INSERT INTO uf.rookie_definitions ${generateColumnsString(rookieDefinitionColumns)} VALUES ${generatePlaceholderString(rookieDefinitionColumns.length, 1)}`;
+    return db.query(query, [firstName, lastName, team, position, season, playerId]);
+}
+
+function deleteRookieDefinition(id) {
+    return db.query('UPDATE uf.rookie_definitions SET active = $1 WHERE id = $2', [false, id]);
+}
+
+function getRookieDefinitions() {
+    return db.query('SELECT * FROM uf.rookie_definitions WHERE active = $1', [true]);
+}
+
+function getRegisteredUsers() {
+    return db.query('SELECT * FROM uf.users WHERE active = $1', [true]);
+}
+
 module.exports = {
     getAllPlayers,
     insertNewUser,
@@ -101,4 +124,8 @@ module.exports = {
     addReplacementRule,
     deleteReplacementRule,
     getReplacementRules,
+    addRookieDefinition,
+    deleteRookieDefinition,
+    getRookieDefinitions,
+    getRegisteredUsers,
 };

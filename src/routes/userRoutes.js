@@ -20,13 +20,5 @@ module.exports = function(app) {
     app.route('/deleteToken')
         .post(userController.deleteRefreshToken);
 
-    app.route('/admin/addReplacementRule')
-        .post(auth.authenticateToken, auth.authenticateAdmin, userController.addReplacementRule);
-
-    app.route('/admin/deleteReplacementRule')
-        .post(auth.authenticateToken, auth.authenticateAdmin, userController.deleteReplacementRule);
-
-    app.route('/admin/replacementRules')
-        .get(auth.authenticateToken, auth.authenticateAdmin, userController.getReplacementRules);
 };
   

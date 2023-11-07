@@ -64,11 +64,21 @@ const replacementRulesColumns = [
     'last_name_replacement',
 ];
 
+const rookieDefinitionColumns = [
+    'first_name',
+    'last_name',
+    'team',
+    'position',
+    'season',
+    'player_id',
+];
+
 module.exports = {
     draftPickColumns,
     exposureDataColumns,
     adpDataColumns,
     userCreationColumns,
     refreshTokenColumns,
-    replacementRulesColumns
+    replacementRulesColumns,
+    rookieDefinitionColumns,
 }
