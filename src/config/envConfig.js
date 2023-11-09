@@ -1,8 +1,5 @@
-/* Change depending on environment */
-const env = 'prod'; // dev or prod
-
 exports.getConfig = function () {
-    if (env === 'dev') {
+    if (process.env.NODE_ENV === 'development') {
         return {
             DB_USER: process.env.DB_USER,
             DB_HOST: process.env.DB_HOST,
@@ -13,7 +10,7 @@ exports.getConfig = function () {
             REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
             ADMIN_OVERRIDE_HASH: process.env.ADMIN_OVERRIDE_HASH,
         };
-    } else if (env === 'prod') {
+    } else if (process.env.NODE_ENV === 'production') {
         const secrets = JSON.parse(process.env.BBE_VARS ?? '{}');
         return {
             DB_USER: secrets.DB_USER,
