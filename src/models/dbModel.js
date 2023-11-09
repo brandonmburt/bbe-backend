@@ -105,6 +105,10 @@ function getRegisteredUsers() {
     return db.query('SELECT * FROM uf.users WHERE active = $1', [true]);
 }
 
+function getRookies() {
+    return db.query('SELECT * FROM uf.rookie_definitions WHERE active = $1', [true]);
+}
+
 module.exports = {
     getAllPlayers,
     insertNewUser,
@@ -128,4 +132,5 @@ module.exports = {
     deleteRookieDefinition,
     getRookieDefinitions,
     getRegisteredUsers,
+    getRookies,
 };

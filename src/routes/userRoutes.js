@@ -20,5 +20,8 @@ module.exports = function(app) {
     app.route('/deleteToken')
         .post(userController.deleteRefreshToken);
 
+    app.route('/rookies')
+        .get(auth.authenticateToken, userController.getRookies)
+
 };
   

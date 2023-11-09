@@ -164,3 +164,19 @@ exports.deleteExposureData = async function (req, res) {
         res.status(500).send('Error: ', error);
     }
 }
+
+exports.getRookies = async function (req, res) {
+    try {
+        const { rows } = await dbModel.getRookies();
+        const rookies = rows.map(row => {
+            const { player_id, season } = row;
+            return {
+                playerId: player_id,
+                season,
+            }
+        })
+        res.status(200).json({rookies});
+    } catch (error) {
+        res.status(500).send('Error: ', error);
+    }
+}
